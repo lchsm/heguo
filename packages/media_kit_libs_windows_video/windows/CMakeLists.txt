@@ -18,6 +18,17 @@ function(duanju_native_archive filename url digest destination)
     endif()
   endif()
   if(NOT EXISTS "${archive}")
+    set(vendored "${CMAKE_CURRENT_SOURCE_DIR}/third_party/${filename}")
+    if(EXISTS "${vendored}")
+      file(SHA256 "${vendored}" vendored_digest)
+      if(NOT vendored_digest STREQUAL digest)
+        message(FATAL_ERROR "Vendored ${filename} SHA256 mismatch: ${vendored_digest}")
+      endif()
+      file(COPY "${vendored}" DESTINATION "${CMAKE_BINARY_DIR}")
+      set(archive "${CMAKE_BINARY_DIR}/${filename}")
+    endif()
+  endif()
+  if(NOT EXISTS "${archive}")
     file(DOWNLOAD "${url}" "${archive}"
       EXPECTED_HASH "SHA256=${digest}"
       TLS_VERIFY ON
@@ -47,11 +58,26 @@ function(duanju_native_archive filename url digest destination)
   if(NOT valid)
     file(REMOVE_RECURSE "${destination}")
     file(MAKE_DIRECTORY "${destination}")
-    execute_process(
-      COMMAND "${CMAKE_COMMAND}" -E tar xf "${archive}"
-      WORKING_DIRECTORY "${destination}"
-      RESULT_VARIABLE extract_result
-    )
+    if(filename MATCHES "\\.7z$")
+      # 7z 容器 cmake -E tar 解不了, 用 7-Zip (GitHub windows runner 预装)
+      find_program(SEVEN_ZIP_EXECUTABLE
+        NAMES 7z.exe 7z 7za
+        HINTS "C:/Program Files/7-Zip" "C:/Program Files (x86)/7-Zip"
+      )
+      if(NOT SEVEN_ZIP_EXECUTABLE)
+        message(FATAL_ERROR "Cannot find 7-Zip to extract ${filename}. Install 7-Zip or add its bin to PATH.")
+      endif()
+      execute_process(
+        COMMAND "${SEVEN_ZIP_EXECUTABLE}" x -y "${archive}" -o"${destination}"
+        RESULT_VARIABLE extract_result
+      )
+    else()
+      execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E tar xf "${archive}"
+        WORKING_DIRECTORY "${destination}"
+        RESULT_VARIABLE extract_result
+      )
+    endif()
     if(NOT extract_result EQUAL 0)
       message(FATAL_ERROR "Failed to extract ${filename}")
     endif()
@@ -66,9 +92,9 @@ endfunction()
 
 set(LIBMPV_SRC "${CMAKE_BINARY_DIR}/libmpv")
 duanju_native_archive(
-  "mpv-dev-x86_64-20260921-git-e76a35ec95.7z"
-  "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20260921/mpv-dev-x86_64-20260921-git-e76a35ec95.7z"
-  "361392d64a231830ac79d1c0f91ddb68c6a709accd282b2c87b13889d382fdec"
+  "mpv-dev-x86_64-20261003-git-3186d369f9.7z"
+  "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20261003/mpv-dev-x86_64-20261003-git-3186d369f9.7z"
+  "b8c2d656c1584d5f08196fcee5c2d0783d1f76021897c4e0b3cc30f94c79522e"
   "${LIBMPV_SRC}"
   "libmpv-2.dll" "libmpv.dll.a" "include/mpv/client.h" "include/mpv/render.h"
 )
