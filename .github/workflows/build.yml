@@ -164,18 +164,17 @@ jobs:
           flutter-version: '3.47.4'
           channel: stable
           cache: true
-      - name: Set up MinGW-w64 (Go c-shared 交叉编译 mingw gcc)
+      - name: Set up MinGW-w64 UCRT64 (Go c-shared 交叉编译 ucrt gcc)
         uses: msys2/setup-msys2@v2
         with:
-          msys2-arch: x86_64
-          msys2-install-path: 'D:\msys64'
-          msys2-repos: 'MSYS2 MINGW64 CLANG64'
-          install: '[mingw-w64-x86_64-gcc]'
+          msystem: UCRT64
+          location: 'D:\msys64'
+          install: '[mingw-w64-ucrt-x86_64-gcc]'
           update: true
       - name: Build Windows
         shell: pwsh
         run: |
-          $env:PATH = "D:\msys64\mingw64\bin;$env:PATH"
+          $env:PATH = "D:\msys64\ucrt64\bin;$env:PATH"
           gcc --version
           python3 scripts/build_windows.py ${{ matrix.arguments }}
         env:
