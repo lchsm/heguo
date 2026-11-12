@@ -169,6 +169,7 @@ jobs:
         with:
           msys2-arch: x86_64
           msys2-install-path: 'D:\msys64'
+          msys2-repos: 'MSYS2 MINGW64 CLANG64'
           install: '[mingw-w64-x86_64-gcc]'
           update: true
       - name: Build Windows
