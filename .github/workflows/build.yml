@@ -169,7 +169,7 @@ jobs:
         with:
           msystem: UCRT64
           location: 'D:\msys64'
-          install: '[mingw-w64-ucrt-x86_64-gcc]'
+          install: mingw-w64-ucrt-x86_64-gcc
           update: true
       - name: Build Windows
         shell: pwsh
