@@ -68,7 +68,8 @@ function(duanju_native_archive filename url digest destination)
         message(FATAL_ERROR "Cannot find 7-Zip to extract ${filename}. Install 7-Zip or add its bin to PATH.")
       endif()
       execute_process(
-        COMMAND "${SEVEN_ZIP_EXECUTABLE}" x -y "${archive}" -o"${destination}"
+        COMMAND "${SEVEN_ZIP_EXECUTABLE}" x -y "${archive}"
+        WORKING_DIRECTORY "${destination}"
         RESULT_VARIABLE extract_result
       )
     else()
